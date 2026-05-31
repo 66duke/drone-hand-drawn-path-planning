@@ -1,0 +1,45 @@
+# Python 编译文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE 配置文件
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 项目生成的图片和数据
+*.png
+*.jpg
+*.jpeg
+*.bmp
+hand_drawn.png
+debug_contour_steps.png
+drone_path_result.png
+
+# 其他临时文件
+*.log
+*.tmp

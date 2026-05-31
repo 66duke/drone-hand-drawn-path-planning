@@ -1,0 +1,85 @@
+INPUT:
+    HandDrawnBoundary B
+    UserStart S
+    ScanWidth w
+
+--------------------------------------------------
+# 1. 手绘轨迹 -> Polygon
+--------------------------------------------------
+P = BuildPolygon(B)
+
+--------------------------------------------------
+# 2. 计算区域主方向（OBB长边方向）
+--------------------------------------------------
+
+theta0 = Compute_OBB_Direction(P)
+
+--------------------------------------------------
+# 3. 局部搜索候选扫描方向
+--------------------------------------------------
+
+candidateAngles = [
+    theta0-15°,
+    theta0-10°,
+    theta0-5°,
+    theta0,
+    theta0+5°,
+    theta0+10°,
+    theta0+15°
+]
+
+bestCost = INF
+
+--------------------------------------------------
+# 4. 遍历所有候选方向
+--------------------------------------------------
+
+FOR each theta IN candidateAngles
+
+    # 旋转区域
+    P_rot = Rotate(P, -theta)
+
+    # 生成等距平行扫描线
+    scanLines = GenerateParallelLines(P_rot, w)
+
+    # 裁剪得到有效扫描线段
+    segments = ClipWithPolygon(scanLines, P_rot)
+
+    # 生成蛇形路径（4种入口方式）
+    templates = GenerateSnakePaths(segments)
+
+    FOR each path IN templates
+
+        E = path.startPoint
+
+        # 用户接入长度
+        L_entry = Distance(S, E)
+
+        # 覆盖路径长度
+        L_coverage = PathLength(path)
+
+        # 总代价
+        J = L_entry + L_coverage
+
+        IF J < bestCost
+
+            bestCost = J
+            bestPath = path
+            bestTheta = theta
+            bestEntry = E
+
+        ENDIF
+
+    ENDFOR
+
+ENDFOR
+
+--------------------------------------------------
+# 5. 输出最终路径
+--------------------------------------------------
+
+OUTPUT:
+    最优扫描方向 bestTheta
+    最优扫描入口 bestEntry
+    最终覆盖路径:
+        S -> bestEntry -> bestPath

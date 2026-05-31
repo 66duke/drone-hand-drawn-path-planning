@@ -1,0 +1,113 @@
+FUNCTION BuildPolygon(B)
+
+    --------------------------------------------------
+    # 1. 获取用户手绘轨迹点（时间有序）
+    --------------------------------------------------
+
+    rawPoints = GetTrajectoryPoints(B)
+
+    --------------------------------------------------
+    # 2. 固定距离采样
+    # 消除点密度不均
+    --------------------------------------------------
+
+    sampledPoints = ResampleByDistance(
+                        rawPoints,
+                        sampleDistance
+                    )
+
+    --------------------------------------------------
+    # 3. Moving Average轻平滑
+    # 消除局部手抖
+    --------------------------------------------------
+
+    smoothPoints = []
+
+    ADD sampledPoints[0] TO smoothPoints
+
+    FOR i = 1 TO len(sampledPoints)-2
+
+        x =
+        (
+            sampledPoints[i-1].x +
+            sampledPoints[i].x +
+            sampledPoints[i+1].x
+        ) / 3
+
+        y =
+        (
+            sampledPoints[i-1].y +
+            sampledPoints[i].y +
+            sampledPoints[i+1].y
+        ) / 3
+
+        ADD (x,y) TO smoothPoints
+
+    ENDFOR
+
+    ADD sampledPoints[len(sampledPoints)-1] TO smoothPoints
+
+    --------------------------------------------------
+    # 4. Douglas-Peucker简化
+    # 删除冗余抖动点
+    --------------------------------------------------
+
+    simplifiedPoints = DouglasPeucker(
+                           smoothPoints,
+                           epsilon
+                       )
+    ----------------------------------------------------------------------------------------------------
+    function DouglasPeucker(PointList[], epsilon)
+        // Find the point with the maximum distance
+        dmax = 0
+        index = 0
+        end = length(PointList)
+        for i = 2 to (end - 1) {
+            d = perpendicularDistance(PointList[i], Line(PointList[1], PointList[end]))
+            if (d > dmax) {
+                index = i
+                dmax = d
+            }
+        }
+
+        ResultList[] = empty;
+
+        // If max distance is greater than epsilon, recursively simplify
+        if (dmax > epsilon) {
+            // Recursive call
+            recResults1[] = DouglasPeucker(PointList[1...index], epsilon)
+            recResults2[] = DouglasPeucker(PointList[index...end], epsilon)
+
+            // Build the result list
+            ResultList[] = {recResults1[1...length(recResults1) - 1], recResults2[1...length(recResults2)]}
+        } else {
+            ResultList[] = {PointList[1], PointList[end]}
+        }
+        // Return the result
+        return ResultList[]
+    end
+    (这部分直接copy了wiki的Ramer–Douglas–Peucker algorithm的伪代码，所以和整体的格式不太一致）
+    ----------------------------------------------------------------------------------------------------
+    --------------------------------------------------
+    # 5. 闭合Polygon
+    --------------------------------------------------
+
+    IF Distance(
+           simplifiedPoints[0],
+           simplifiedPoints[-1]
+       ) > closeThreshold
+
+        ADD simplifiedPoints[0]
+        TO simplifiedPoints
+
+    ENDIF
+
+    --------------------------------------------------
+    # 6. 生成Polygon
+    --------------------------------------------------
+
+    polygon = Polygon(simplifiedPoints)
+
+    RETURN polygon
+
+END FUNCTION
