@@ -7,13 +7,13 @@ from shapely.geometry import Polygon, LineString
 from shapely.validation import make_valid
 import cv2
 
-# ===================== 配置Matplotlib =====================
+# ===================== Configure Matplotlib =====================
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['figure.dpi'] = 120
 plt.style.use('default')
 
 
-# ===================== 【1】轮廓提取 =====================
+# ===================== 【1】Contour Extraction =====================
 def image_to_sketch_points(image_path, down_scale=1, line_width=3):
     img = cv2.imread(image_path)
     if img is None:
@@ -41,7 +41,7 @@ def image_to_sketch_points(image_path, down_scale=1, line_width=3):
     return np.array(outer_points)
 
 
-# ===================== 【2】预处理 =====================
+# ===================== 【2】Preprocessing =====================
 def moving_average_smooth(points, k=3):
     smoothed = np.copy(points)
     n = len(points)
@@ -71,7 +71,7 @@ def close_and_build_polygon(points):
     return polygon, points
 
 
-# ===================== 【3】方向估计 =====================
+# ===================== 【3】Direction Estimation =====================
 def get_obb_main_direction(polygon):
     obb = polygon.minimum_rotated_rectangle
     obb_points = np.array(obb.exterior.coords)[:4]
@@ -87,7 +87,7 @@ def local_direction_search(theta0, angles=[-15, -10, -5, 0, 5, 10, 15]):
     return [np.radians(ang) + theta0 for ang in angles]
 
 
-# ===================== 【4】核心：排布航线 =====================
+# ===================== 【4】Core: Arrange Flight Routes =====================
 def generate_parallel_scan_lines(polygon, theta, scan_width):
     W = scan_width
     H = W / 2
@@ -192,7 +192,7 @@ def generate_parallel_scan_lines(polygon, theta, scan_width):
     return [g for _, g in final_group]
 
 
-# ===================== 【5】四种起点蛇形路径 =====================
+# ===================== 【5】Four - starting - point Serpentine Paths =====================
 def generate_all_possible_paths(grouped_scan_lines):
     if not grouped_scan_lines:
         return []
@@ -252,7 +252,7 @@ def generate_all_possible_paths(grouped_scan_lines):
     return paths
 
 
-# ===================== 【6】完整代价计算 =====================
+# ===================== 【6】Complete Cost Calculation =====================
 def calculate_complete_cost(start_point, snake_path, grouped_scan_lines):
     if len(snake_path) == 0:
         return float('inf'), 0, 0, 0
@@ -269,7 +269,7 @@ def calculate_complete_cost(start_point, snake_path, grouped_scan_lines):
     return total_cost, takeoff_dist, scan_dist, turn_dist
 
 
-# ===================== 【7】主函数 =====================
+# ===================== 【7】Main Function =====================
 def drone_coverage_path(sketch_points, start_point, scan_width):
     step0_original = sketch_points
     step1_smoothed = moving_average_smooth(step0_original, k=3)
@@ -309,7 +309,7 @@ def drone_coverage_path(sketch_points, start_point, scan_width):
             best_theta, best_start_type, best_cost_details)
 
 
-# ===================== 【8】可视化 =====================
+# ===================== 【8】Visualization =====================
 def visualize_all_steps(steps, start_point, save_path="debug_contour_steps.png"):
     step0, step1, step2, step3, polygon, best_path, _, _, _, _ = steps
     plt.figure(figsize=(12, 10))
@@ -351,7 +351,7 @@ def visualize_final_result(polygon_points, start_point, best_path, scan_width, s
     plt.close()
 
 
-# ===================== 运行入口 =====================
+# ===================== Execution Entry =====================
 if __name__ == '__main__':
     original_points = image_to_sketch_points("hand_drawn.png", down_scale=1, line_width=3)
     start_point = (900, 100)
