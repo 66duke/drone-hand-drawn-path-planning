@@ -180,7 +180,7 @@ def generate_parallel_scan_lines(polygon, theta, scan_width):
     return [g for _, g in final_group]
 
 
-# ===================== 【修正】平滑转弯曲线生成 =====================
+# ===================== 【5】Generation of Smooth Turning Curves =====================
 def generate_smooth_turn_curve(boundary_points, p_start, p_end, num_samples=20):
     """
     基于高密度边界点，在起止点之间沿最短边缘拟合三次参数曲线
@@ -236,7 +236,7 @@ def generate_smooth_turn_curve(boundary_points, p_start, p_end, num_samples=20):
     return np.column_stack([x_smooth, y_smooth])
 
 
-# ===================== 【修正】带平滑转弯的蛇形路径生成 =====================
+# ===================== 【6】Generation of Serpentine Paths with Smooth Turns =====================
 def generate_all_possible_paths(grouped_scan_lines, boundary_points):
     if not grouped_scan_lines:
         return []
@@ -326,7 +326,7 @@ def generate_all_possible_paths(grouped_scan_lines, boundary_points):
     return paths
 
 
-# ===================== 【6】Complete Cost Calculation =====================
+# ===================== 【7】Complete Cost Calculation =====================
 def calculate_complete_cost(start_point, snake_path, grouped_scan_lines):
     if len(snake_path) == 0:
         return float('inf'), 0, 0, 0
@@ -343,7 +343,7 @@ def calculate_complete_cost(start_point, snake_path, grouped_scan_lines):
     return total_cost, takeoff_dist, scan_dist, turn_dist
 
 
-# ===================== 【7】Main Function（修正：传入高密度边界） =====================
+# ===================== 【8】Main Function =====================
 def drone_coverage_path(sketch_points, start_point, scan_width):
     step0_original = sketch_points
     step1_smoothed = moving_average_smooth(step0_original, k=3)
@@ -390,7 +390,7 @@ def drone_coverage_path(sketch_points, start_point, scan_width):
             best_theta, best_start_type, best_cost_details)
 
 
-# ===================== 【8】Visualization =====================
+# ===================== 【9】Visualization =====================
 def visualize_all_steps(steps, start_point, save_path="debug_contour_steps.png"):
     step0, step1, step2, step3, polygon, best_path, _, _, _, _ = steps
     plt.figure(figsize=(12, 10))
